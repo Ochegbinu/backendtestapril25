@@ -29,17 +29,14 @@ class UserController extends Controller
     {
         $authUser = $request->user();
 
-        // Only Admins can create users
         if ($authUser->role !== 'Admin') {
             return response()->json(['error' => 'Only Admins can create users.'], 403);
         }
     
-        // Make sure the admin has a company_id
         if (!$authUser->company_id) {
             return response()->json(['error' => 'Admin is not associated with a company.'], 400);
         }
     
-        // Validate input (only Manager or Employee can be created)
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -95,7 +92,6 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
-        // Admin cannot delete themselves
         if ($user->id === $request->user()->id) {
             return response()->json(['message' => 'Cannot delete your own account'], 400);
         }

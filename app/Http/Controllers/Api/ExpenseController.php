@@ -14,12 +14,7 @@ use Illuminate\Validation\Rule;
 
 class ExpenseController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:sanctum');
-    //     $this->middleware('company.access')->except(['index', 'store']);
-    // }
-
+   
     public function index(Request $request)
     {
         $user = $request->user();
@@ -27,7 +22,6 @@ class ExpenseController extends Controller
         
         $query = Expense::where('company_id', $companyId);
         
-        // Apply search filters if provided
         if ($request->has('title')) {
             $query->where('title', 'like', '%' . $request->title . '%');
         }
@@ -36,10 +30,8 @@ class ExpenseController extends Controller
             $query->where('category', $request->category);
         }
         
-        // Cache key based on query parameters
         $cacheKey = "expenses:{$companyId}:" . md5(json_encode($request->all()));
         
-        // Get expenses with eager loading
         $expenses = Cache::remember($cacheKey, 600, function () use ($query) {
             return $query->with('user')->paginate(15);
         });
@@ -91,7 +83,6 @@ class ExpenseController extends Controller
 
     public function update(Request $request, Expense $expense)
     {
-        // $this->middleware('role:Admin,Manager');
         
         $user = $request->user();
         
@@ -101,12 +92,10 @@ class ExpenseController extends Controller
             'category' => 'sometimes|string|max:255',
         ]);
         
-        // Save original state for audit log
         $originalExpense = $expense->toArray();
         
         $expense->update($validated);
         
-        // Create audit log
         AuditLog::create([
             'user_id' => $user->id,
             'company_id' => $user->company_id,
@@ -117,7 +106,6 @@ class ExpenseController extends Controller
             ],
         ]);
         
-        // Clear cache for this company's expenses
         $this->clearExpenseCache($user->company_id);
         
         return response()->json($expense);
@@ -125,16 +113,13 @@ class ExpenseController extends Controller
 
     public function destroy(Request $request, Expense $expense)
     {
-        // $this->middleware('role:Admin');
         
         $user = $request->user();
         
-        // Save original state for audit log
         $originalExpense = $expense->toArray();
         
         $expense->delete();
         
-        // Create audit log
         AuditLog::create([
             'user_id' => $user->id,
             'company_id' => $user->company_id,
@@ -145,7 +130,6 @@ class ExpenseController extends Controller
             ],
         ]);
         
-        // Clear cache for this company's expenses
         $this->clearExpenseCache($user->company_id);
         
         return response()->json(['message' => 'Expense deleted successfully']);
@@ -153,15 +137,12 @@ class ExpenseController extends Controller
     
     private function clearExpenseCache($companyId)
     {
-        // Get all cache keys for this company's expenses
         $keys = Cache::get("expense_cache_keys:{$companyId}", []);
         
-        // Delete each key
         foreach ($keys as $key) {
             Cache::forget($key);
         }
         
-        // Clear the list of keys
         Cache::forget("expense_cache_keys:{$companyId}");
     }
 }

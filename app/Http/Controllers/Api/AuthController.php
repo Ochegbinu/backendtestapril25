@@ -22,13 +22,11 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // Create company
         $company = Company::create([
             'name' => $request->company_name,
             'email' => $request->company_email,
         ]);
 
-        // Create admin user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
