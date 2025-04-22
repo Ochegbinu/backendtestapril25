@@ -13,6 +13,7 @@ class SendWeeklyExpenseReport implements ShouldQueue
     public function handle()
     {
         $admins = User::where('role', 'Admin')->get();
+        
 
         foreach ($admins as $admin) {
             Mail::to($admin->email)->send(new \App\Mail\ExpenseReportMail($admin));
